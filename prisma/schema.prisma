@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  name        String
+  teacher     String?
+  location    String?
+  credit      Float    @default(0)
+  category    String   @default("必修")
+  color       String   @default("#6366f1")
+  dayOfWeek   Int      @default(1)
+  startTime   String   @default("08:00")
+  endTime     String   @default("09:40")
+  startWeek   Int      @default(1)
+  endWeek     Int      @default(16)
+  semester    String   @default("2024-2025-2")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  assignments Assignment[]
+  exams       Exam[]
+  grades      Grade[]
+  notes       Note[]
+  attendance  Attendance[]
+}
+
+model Assignment {
+  id          String    @id @default(cuid())
+  title       String
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  description String?
+  dueDate     DateTime?
+  status      String    @default("pending")
+  priority    Int       @default(0)
+  remindDays  Int       @default(1)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  subtasks    Subtask[]
+}
+
+model Subtask {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  title        String
+  isCompleted  Boolean    @default(false)
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now())
+}
+
+model Exam {
+  id          String   @id @default(cuid())
+  title       String
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  date        DateTime
+  location    String?
+  seat        String?
+  type        String   @default("期中考试")
+  remindDays  Int      @default(3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Grade {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  semester    String
+  score       Float?
+  gradePoint  Float?
+  credit      Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AppSettings {
+  id        String @id @default(cuid())
+  key       String @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @default("")
+  courseId    String?
+  course      Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  tag         String?
+  isPinned    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Attendance {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  date        String
+  status      String   @default("present")
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
